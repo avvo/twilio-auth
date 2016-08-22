@@ -9,7 +9,9 @@ defmodule TwilioAuth.Mixfile do
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps()]
+     deps: deps(),
+     dialyzer: [plt_add_deps: :transitive, plt_file: ".local.plt"]
+    ]
   end
 
   def application do
@@ -34,6 +36,7 @@ defmodule TwilioAuth.Mixfile do
   defp deps do
     [
       {:plug, "~> 1.0"},
+      {:dialyxir, "~> 0.3.5", only: [:dev, :test]},
       {:ex_doc, ">= 0.0.0", only: :dev}
     ]
   end
