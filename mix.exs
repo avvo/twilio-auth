@@ -3,7 +3,7 @@ defmodule TwilioAuth.Mixfile do
 
   def project do
     [app: :twilio_auth,
-     version: "0.1.0",
+     version: "0.2.0",
      description: description(),
      package: package(),
      elixir: "~> 1.3",
