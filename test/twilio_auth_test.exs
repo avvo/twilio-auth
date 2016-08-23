@@ -15,7 +15,7 @@
 
   def add_signature(conn, auth_token) do
     sig = "https://www.example.com/some/path?qp1=123&qp2=asdffoobarrightsideupupsidedown"
-    |> (fn (val) -> :crypto.hmac(:sha256, auth_token, val) end).()
+    |> (fn (val) -> :crypto.hmac(:sha, auth_token, val) end).()
     |> Base.encode64
 
     Plug.Conn.put_req_header(conn, "x-twilio-signature", sig)

@@ -1,8 +1,6 @@
 defmodule TwilioAuth do
   @behaviour Plug
 
-  require Logger
-
   @spec init(Plug.opts) :: Plug.opts
   def init(options) do
     [
@@ -19,17 +17,8 @@ defmodule TwilioAuth do
       _ ->
         conn
         |> Plug.Conn.send_resp(401, "401 Unauthorized")
-        |> (fn (conn) -> log(conn) end).()
         |> Plug.Conn.halt
     end
-  end
-
-  defp log(conn) do
-    Logger.error(inspect(%{
-      headers: conn.req_headers,
-      body:    conn.body_params
-    }))
-    conn
   end
 
   @spec authenticate!(Plug.Conn.t, String.t, boolean()) :: atom()
@@ -51,12 +40,20 @@ defmodule TwilioAuth do
     scheme       = conn.scheme
     host         = conn.host
     path         = conn.request_path
-    query_string = conn.query_string
+    query_string = query_string(conn)
     post_content = post_string(conn)
 
-    "#{scheme}://#{host}#{path}?#{query_string}#{post_content}"
-    |> hmac_sha256(auth_token)
+    "#{scheme}://#{host}#{path}#{query_string}#{post_content}"
+    |> hmac_sha(auth_token)
     |> Base.encode64
+  end
+
+  @spec query_string(Plug.Conn.t) :: String.t
+  defp query_string(conn) do
+    case conn.query_string do
+      ""   -> ""
+      val  -> "?" <> val
+    end
   end
 
   @spec post_string(Plug.Conn.t) :: String.t
@@ -76,8 +73,8 @@ defmodule TwilioAuth do
     |> Map.drop(conn.query_params |> Map.keys())
   end
 
-  @spec hmac_sha256(String.t, String.t) :: binary()
-  defp hmac_sha256(value, token) do
-    :crypto.hmac(:sha256, token, value)
+  @spec hmac_sha(String.t, String.t) :: binary()
+  defp hmac_sha(value, token) do
+    :crypto.hmac(:sha, token, value)
   end
 end
