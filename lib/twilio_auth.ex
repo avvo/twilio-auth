@@ -1,6 +1,8 @@
 defmodule TwilioAuth do
   @behaviour Plug
 
+  require Logger
+
   @spec init(Plug.opts) :: Plug.opts
   def init(options) do
     [
@@ -17,8 +19,17 @@ defmodule TwilioAuth do
       _ ->
         conn
         |> Plug.Conn.send_resp(401, "401 Unauthorized")
+        |> (fn (conn) -> log(conn) end).()
         |> Plug.Conn.halt
     end
+  end
+
+  defp log(conn) do
+    Logger.error(inspect(%{
+      headers: conn.req_headers,
+      body:    conn.body_params
+    }))
+    conn
   end
 
   @spec authenticate!(Plug.Conn.t, String.t, boolean()) :: atom()
