@@ -12,7 +12,7 @@ to your project's `mix.exs`:
 
 ```elixir
   def deps do
-    [{:twilio_auth, "~> 0.1.0"}]
+    [{:twilio_auth, "~> 0.2.0"}]
   end
 ```
 
