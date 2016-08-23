@@ -44,7 +44,7 @@ defmodule TwilioAuth do
     post_content = post_string(conn)
 
     "#{scheme}://#{host}#{path}#{query_string}#{post_content}"
-    |> hmac_sha(auth_token)
+    |> hash(auth_token)
     |> Base.encode64
   end
 
@@ -73,8 +73,8 @@ defmodule TwilioAuth do
     |> Map.drop(conn.query_params |> Map.keys())
   end
 
-  @spec hmac_sha(String.t, String.t) :: binary()
-  defp hmac_sha(value, token) do
+  @spec hash(String.t, String.t) :: binary()
+  defp hash(value, token) do
     :crypto.hmac(:sha, token, value)
   end
 end
