@@ -15,7 +15,7 @@
 
   def add_signature(conn, auth_token) do
     sig = "https://www.example.com/some/path?qp1=123&qp2=asdffoobarrightsideupupsidedown"
-    |> (fn (val) -> :crypto.hmac(:sha256, auth_token, val) end).()
+    |> (fn (val) -> :crypto.hmac(:sha, auth_token, val) end).()
     |> Base.encode64
 
     Plug.Conn.put_req_header(conn, "x-twilio-signature", sig)
@@ -69,6 +69,23 @@
       |> TestPlug.call(TestPlug.init([]))
 
       assert conn.status == 401
+    end
+
+    test "works in the absence of query params" do
+      conn = conn(:POST, "/some/path", %{
+        rightsideup: "upsidedown",
+        foo: "bar"
+      }) |> Map.put(:scheme, "https")
+
+      sig = "https://www.example.com/some/pathfoobarrightsideupupsidedown"
+      |> (fn (val) -> :crypto.hmac(:sha, "I_AM_AN_AUTH_TOKEN", val) end).()
+      |> Base.encode64()
+
+      result = conn
+      |> Plug.Conn.put_req_header("x-twilio-signature", sig)
+      |> TestPlug.call(TestPlug.init([]))
+
+      assert result.status == 200
     end
   end
 

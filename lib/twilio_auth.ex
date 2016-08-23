@@ -40,12 +40,20 @@ defmodule TwilioAuth do
     scheme       = conn.scheme
     host         = conn.host
     path         = conn.request_path
-    query_string = conn.query_string
+    query_string = query_string(conn)
     post_content = post_string(conn)
 
-    "#{scheme}://#{host}#{path}?#{query_string}#{post_content}"
-    |> hmac_sha256(auth_token)
+    "#{scheme}://#{host}#{path}#{query_string}#{post_content}"
+    |> hash(auth_token)
     |> Base.encode64
+  end
+
+  @spec query_string(Plug.Conn.t) :: String.t
+  defp query_string(conn) do
+    case conn.query_string do
+      ""   -> ""
+      val  -> "?" <> val
+    end
   end
 
   @spec post_string(Plug.Conn.t) :: String.t
@@ -65,8 +73,8 @@ defmodule TwilioAuth do
     |> Map.drop(conn.query_params |> Map.keys())
   end
 
-  @spec hmac_sha256(String.t, String.t) :: binary()
-  defp hmac_sha256(value, token) do
-    :crypto.hmac(:sha256, token, value)
+  @spec hash(String.t, String.t) :: binary()
+  defp hash(value, token) do
+    :crypto.hmac(:sha, token, value)
   end
 end
