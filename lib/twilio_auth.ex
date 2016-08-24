@@ -37,13 +37,12 @@ defmodule TwilioAuth do
 
   @spec build_local(Plug.Conn.t, String.t) :: String.t
   defp build_local(conn, auth_token) do
-    scheme       = conn.scheme
     host         = conn.host
     path         = conn.request_path
     query_string = query_string(conn)
     post_content = post_string(conn)
 
-    "#{scheme}://#{host}#{path}#{query_string}#{post_content}"
+    "https://#{host}#{path}#{query_string}#{post_content}"
     |> hash(auth_token)
     |> Base.encode64
   end

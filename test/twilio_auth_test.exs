@@ -10,7 +10,7 @@
         rightsideup: "upsidedown",
         foo: "bar"
       }
-    ) |> Map.put(:scheme, :https)
+    )
   end
 
   def add_signature(conn, auth_token) do
@@ -62,20 +62,11 @@
       assert conn.status == 401
     end
 
-    test "fails auth if no https" do
-      conn = build_conn()
-      |> add_signature("I_AM_AN_AUTH_TOKEN")
-      |> Map.put(:scheme, :http)
-      |> TestPlug.call(TestPlug.init([]))
-
-      assert conn.status == 401
-    end
-
     test "works in the absence of query params" do
       conn = conn(:POST, "/some/path", %{
         rightsideup: "upsidedown",
         foo: "bar"
-      }) |> Map.put(:scheme, "https")
+      })
 
       sig = "https://www.example.com/some/pathfoobarrightsideupupsidedown"
       |> (fn (val) -> :crypto.hmac(:sha, "I_AM_AN_AUTH_TOKEN", val) end).()
