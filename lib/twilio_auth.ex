@@ -77,6 +77,7 @@ defmodule TwilioAuth do
     :crypto.hmac(:sha, unpack_auth_token(token), value)
   end
 
+  @spec unpack_auth_token(String.t | {atom(), atom()}) :: String.t
   defp unpack_auth_token(token) when is_bitstring(token), do: token
   defp unpack_auth_token({key1, key2}) do
     Application.get_env(key1, key2)
