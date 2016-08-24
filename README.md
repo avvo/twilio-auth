@@ -12,7 +12,7 @@ to your project's `mix.exs`:
 
 ```elixir
   def deps do
-    [{:twilio_auth, "~> 0.2.0"}]
+    [{:twilio_auth, "~> 0.3.0"}]
   end
 ```
 
@@ -47,5 +47,19 @@ The plug has two configuration options:
 
 ```
 auth_token # authentication token provided by Twilio for your app's use
+           # String.t | {atom(), atom()}
 enabled    # boolean controlling whether auth is on (`true` by default)
+```
+
+`auth_token` allows either a string argument, or a 2-tuple that will be
+evaluated at runtime to get an environment variable off of `Application`.
+
+i.e.
+
+```
+# in config.exs
+config :twilio_auth, auth_token: YOUR_AUTH_TOKEN
+
+# in router
+plug TwilioAuth, auth_token: {:twilio_auth, :auth_token}
 ```

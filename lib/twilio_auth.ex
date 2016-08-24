@@ -4,7 +4,7 @@ defmodule TwilioAuth do
   @spec init(Plug.opts) :: Plug.opts
   def init(options) do
     [
-      {:auth_token, Keyword.get(options, :auth_token, '')},
+      {:auth_token, Keyword.get(options, :auth_token, "")},
       {:enabled, Keyword.get(options, :enabled, true)}
     ]
   end
@@ -37,13 +37,12 @@ defmodule TwilioAuth do
 
   @spec build_local(Plug.Conn.t, String.t) :: String.t
   defp build_local(conn, auth_token) do
-    scheme       = conn.scheme
     host         = conn.host
     path         = conn.request_path
     query_string = query_string(conn)
     post_content = post_string(conn)
 
-    "#{scheme}://#{host}#{path}#{query_string}#{post_content}"
+    "https://#{host}#{path}#{query_string}#{post_content}"
     |> hash(auth_token)
     |> Base.encode64
   end
@@ -75,6 +74,12 @@ defmodule TwilioAuth do
 
   @spec hash(String.t, String.t) :: binary()
   defp hash(value, token) do
-    :crypto.hmac(:sha, token, value)
+    :crypto.hmac(:sha, unpack_auth_token(token), value)
+  end
+
+  @spec unpack_auth_token(String.t | {atom(), atom()}) :: String.t
+  defp unpack_auth_token(token) when is_bitstring(token), do: token
+  defp unpack_auth_token({key1, key2}) do
+    Application.get_env(key1, key2)
   end
 end

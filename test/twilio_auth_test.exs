@@ -10,7 +10,7 @@
         rightsideup: "upsidedown",
         foo: "bar"
       }
-    ) |> Map.put(:scheme, :https)
+    )
   end
 
   def add_signature(conn, auth_token) do
@@ -62,20 +62,11 @@
       assert conn.status == 401
     end
 
-    test "fails auth if no https" do
-      conn = build_conn()
-      |> add_signature("I_AM_AN_AUTH_TOKEN")
-      |> Map.put(:scheme, :http)
-      |> TestPlug.call(TestPlug.init([]))
-
-      assert conn.status == 401
-    end
-
     test "works in the absence of query params" do
       conn = conn(:POST, "/some/path", %{
         rightsideup: "upsidedown",
         foo: "bar"
-      }) |> Map.put(:scheme, "https")
+      })
 
       sig = "https://www.example.com/some/pathfoobarrightsideupupsidedown"
       |> (fn (val) -> :crypto.hmac(:sha, "I_AM_AN_AUTH_TOKEN", val) end).()
@@ -88,7 +79,6 @@
       assert result.status == 200
     end
   end
-
 
   describe "disabled" do
     defmodule NoAuthPlug do
@@ -109,6 +99,35 @@
     test "attempts no auth when disabled" do
       conn = build_conn()
       |> NoAuthPlug.call(NoAuthPlug.init([]))
+
+      assert conn.status == 200
+    end
+  end
+
+  describe "fn config" do
+    defmodule FnConfigPlug do
+      use Plug.Builder
+
+      plug Plug.Parsers,
+        parsers: [:urlencoded, :multipart, :json],
+        pass: ["*/*"],
+        json_decoder: Poison
+      plug TwilioAuth, auth_token: {:twilio_auth, :auth_token}
+      plug :success
+
+      def success(conn, _opts) do
+        conn |> Plug.Conn.send_resp(200, "Hurray")
+      end
+    end
+
+    setup do
+      Application.put_env(:twilio_auth, :auth_token, "I_AM_AN_AUTH_TOKEN")
+      :ok
+    end
+    test "attempts no auth when disabled" do
+      conn = build_conn()
+      |> add_signature("I_AM_AN_AUTH_TOKEN")
+      |> FnConfigPlug.call(FnConfigPlug.init([]))
 
       assert conn.status == 200
     end
