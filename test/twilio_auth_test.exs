@@ -89,7 +89,6 @@
     end
   end
 
-
   describe "disabled" do
     defmodule NoAuthPlug do
       use Plug.Builder
@@ -109,6 +108,35 @@
     test "attempts no auth when disabled" do
       conn = build_conn()
       |> NoAuthPlug.call(NoAuthPlug.init([]))
+
+      assert conn.status == 200
+    end
+  end
+
+  describe "fn config" do
+    defmodule FnConfigPlug do
+      use Plug.Builder
+
+      plug Plug.Parsers,
+        parsers: [:urlencoded, :multipart, :json],
+        pass: ["*/*"],
+        json_decoder: Poison
+      plug TwilioAuth, auth_token: {:twilio_auth, :auth_token}
+      plug :success
+
+      def success(conn, _opts) do
+        conn |> Plug.Conn.send_resp(200, "Hurray")
+      end
+    end
+
+    setup do
+      Application.put_env(:twilio_auth, :auth_token, "I_AM_AN_AUTH_TOKEN")
+      :ok
+    end
+    test "attempts no auth when disabled" do
+      conn = build_conn()
+      |> add_signature("I_AM_AN_AUTH_TOKEN")
+      |> FnConfigPlug.call(FnConfigPlug.init([]))
 
       assert conn.status == 200
     end
