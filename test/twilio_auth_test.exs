@@ -19,6 +19,7 @@
     |> Base.encode64
 
     Plug.Conn.put_req_header(conn, "x-twilio-signature", sig)
+    |> Plug.Conn.put_req_header("host", "www.example.com")
   end
 
   describe "enabled" do
@@ -74,6 +75,7 @@
 
       result = conn
       |> Plug.Conn.put_req_header("x-twilio-signature", sig)
+      |> Plug.Conn.put_req_header("host", "www.example.com")
       |> TestPlug.call(TestPlug.init([]))
 
       assert result.status == 200
