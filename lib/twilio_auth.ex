@@ -37,7 +37,9 @@ defmodule TwilioAuth do
 
   @spec build_local(Plug.Conn.t, String.t) :: String.t
   defp build_local(conn, auth_token) do
-    host         = conn.host
+    host = conn
+    |> Plug.Conn.get_req_header("host")
+    |> to_string()
     path         = conn.request_path
     query_string = query_string(conn)
     post_content = post_string(conn)
